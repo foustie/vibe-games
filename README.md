@@ -1,73 +1,36 @@
-# React + TypeScript + Vite
+# Bazar: a party game where one of the players is an AI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A pass-the-phone party game in the spirit of Quiplash, built for **AI Cup 2026** as the first game of *vibe.games*, a feed of AI mini-games.
 
-Currently, two official plugins are available:
+One phone, a group of friends, and an impostor. Each round everyone answers the same sharp prompt, and the AI slips in an answer of its own. Then you vote for the funniest answer and try to guess who wrote what, including which one came from the machine.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## How a round goes
 
-## React Compiler
+1. **Lobby:** add the players at the table.
+2. **Prompt:** Claude writes a fresh prompt in Russian with a bit of English and Kazakh, about school, parents, Almaty, pop culture and the absurd.
+3. **Answers:** the phone goes around, and everyone types an answer the others can't see.
+4. **The impostor:** the AI reads every real answer and writes its own fake, mirroring the group's length, language, spelling and vibe so it blends in.
+5. **Vote:** the phone goes around again, and everyone picks a favorite. You can't vote for yourself.
+6. **Attribution:** guess the author of each answer, +25 points for every hit, and the most for spotting the AI.
+7. **Reveal:** who wrote what, scores, and a short sarcastic verdict from an AI host.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## The AI has three jobs
 
-## Expanding the ESLint configuration
+| Role | What it does |
+|---|---|
+| Writer | generates the round's prompt |
+| Impostor | writes a fake answer that copies how *this* group writes |
+| Host | gives a two-sentence roast of the round's results, 180 characters max |
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+All three run through one serverless function (`netlify/functions/quiplash.js`) on the Anthropic API.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+React 19, TypeScript, Vite, Tailwind, Zustand for the game state machine (`lobby → intro → answer → wait_ai → vote → attribute → reveal → final`), and a serverless function for the AI calls. The game is built for phones first, including fixes for iOS Safari quirks.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Run it
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+ANTHROPIC_API_KEY=... npx netlify dev
 ```
